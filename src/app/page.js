@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import io from 'socket.io-client';
+import Particle from "../components/Particle";
 
 export default function Home() {
   
@@ -40,11 +41,18 @@ export default function Home() {
   };
 
   return (
-    <div className="bg-white min-h-screen flex flex-col justify-center items-center">
-    <img src="assets/mainMenu.png"
-    alt="Main Menu Pusheen Image">
-    </img>
-      <div className="menu text-black text-center">
+    <div className="relative bg-white min-h-screen flex flex-col justify-center items-center">
+      {/* Particle Component in the background */}
+      <div className="absolute inset-0 z-0 h-screen w-full">
+        <Particle />
+      </div>
+    
+      <img 
+        src="/assets/mainMenu.png" // Make sure to use the correct path
+        alt="Main Menu Pusheen Image" 
+        className="z-10" // Higher z-index for the image
+      />
+      <div className="menu text-black text-center z-10">
         <h1 className="text-4xl font-bold mb-8">Welcome to Cover Your Kittens!</h1>
         <button
           className="bg-[#b4e2d7] text-black py-2 px-4 rounded hover:bg-opacity-90 transition mb-4"
@@ -61,7 +69,7 @@ export default function Home() {
             placeholder="Enter Room ID"
           />
           <button
-            className="bg-[#ffb0c2] text-black py-2 px-4 rounded hover:bg-opacity-90 transition"
+            className="bg-[#ffb0c2] ml-2 text-black py-2 px-4 rounded hover:bg-opacity-90 transition"
             onClick={handleJoinRoom}
           >
             Join Game
