@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useRouter } from 'next/navigation';
 import io from 'socket.io-client';
 import Particle from "../components/Particle";
 
@@ -8,8 +8,10 @@ export default function Home() {
   const socketRef = useRef(null);
   const [roomId, setRoomId] = useState('');
   const [generatedRoomId, setGeneratedRoomId] = useState('');
-  const router = useRouter(); // Initialize router here
-  const [nickname, setNickname] = useState(''); // new state for keeping track of nicknames 
+  const [nickname, setNickname] = useState('');
+  const [userList, setUserList] = useState([]); // State for keeping track of user list
+  const router = useRouter();
+
   useEffect(() => {
     // Initialize socket.io client and store it in the ref
     socketRef.current = io();
@@ -22,11 +24,11 @@ export default function Home() {
       console.log('Disconnected from the server');
     });
 
-  /*
-    socketRef.current.on('newPlayer', (message) => {
-      alert(message);
+    // Listen for the updated user list from the server
+    socketRef.current.on('updateUserList', (userList) => {
+      console.log('Updated user list:', userList);
+      setUserList(userList);
     });
-  */
 
     return () => {
       socketRef.current.disconnect();
@@ -38,7 +40,6 @@ export default function Home() {
     const newRoomId = Math.random().toString(36).substring(2, 9);
     socketRef.current.emit('createRoom', newRoomId);
     setGeneratedRoomId(newRoomId);
-   
   };
 
   // Handle joining a room
@@ -47,7 +48,6 @@ export default function Home() {
     console.log("RoomId: ", roomId);
     if (roomId && nickname) {
       localStorage.setItem('nickname', nickname);
-      // Emitting both roomId and nickname as an object
       socketRef.current.emit('joinRoom', { roomId: roomId, nickname: nickname });
       console.log(`Joining room ${roomId} with nickname ${nickname}`);
       router.push(`/${roomId}`); // Redirect to the room page
@@ -55,17 +55,15 @@ export default function Home() {
       console.log("Room ID and Nickname are required to join the room.");
     }
   };
-  
 
   return (
     <div className="relative bg-white min-h-screen flex flex-col justify-center items-center">
-      {/* Particle Component in the background */}
       <div className="absolute inset-0 z-0 h-screen w-full">
         <Particle />
       </div>
 
       <img 
-        src="/assets/mainMenu.png" // Ensure correct image path
+        src="/assets/mainMenu.png"
         alt="Main Menu Pusheen Image"
         className="z-10 animate-pulse-scale"
       />
@@ -80,7 +78,6 @@ export default function Home() {
           Create New Game
         </button>
 
-        {/* Display the generated Room ID */}
         {generatedRoomId && (
           <div className="mt-4">
             <p>Your Room ID is <span className="font-bold">{generatedRoomId}</span></p>
@@ -88,7 +85,6 @@ export default function Home() {
         )}
 
         <div className="mt-4">
-
           <input
             className="border border-gray-300 rounded px-4 py-2 text-black mb-4"
             type="text"
@@ -111,6 +107,14 @@ export default function Home() {
             Join Game
           </button>
         </div>
+
+        {/* Display the list of users in the room */}
+        <h2 className="mt-4 text-lg">Users in Room:</h2>
+        <ul className="mt-2">
+          {userList.map((user, index) => (
+            <li key={index}>{user}</li>
+          ))}
+        </ul>
       </div>
     </div>
   );
