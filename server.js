@@ -54,6 +54,14 @@ socket.on('joinRoom', (data) => {
     
     socket.on('disconnect', () => {
         console.log('user disconnected');
+
+        for(let roomId in usersInRooms){
+          usersInRooms[roomId] = usersInRooms[roomId].filter(nick => nick !== nickname);
+
+          // emit an updated user list:
+          io.to(roomId).emit('updatedUserList', usersInRooms[roomId]);
+        }
+
       });
 
     // Custom game events will go here here (e.g., player joins a game, draws a card, etc.)

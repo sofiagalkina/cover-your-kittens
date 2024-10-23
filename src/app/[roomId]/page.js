@@ -17,7 +17,10 @@ export default function RoomPage() {
             console.log('Connected to the server');
             // Emit an event to join the room using the roomId from the URL
             const nickname = localStorage.getItem('nickname');
-            socketRef.current.emit('joinRoom', { roomId, nickname }); // Replace 'SomeName' with dynamic nickname
+
+            if(nickname && roomId){
+            socketRef.current.emit('joinRoom', { roomId, nickname }); 
+            }
         });
 
         socketRef.current.on('disconnect', () => {
