@@ -9,7 +9,7 @@ export default function Home() {
   const [roomId, setRoomId] = useState('');
   const [generatedRoomId, setGeneratedRoomId] = useState('');
   const router = useRouter(); // Initialize router here
-
+  const [nickname, setNickname] = useState(''); // new state for keeping track of nicknames 
   useEffect(() => {
     // Initialize socket.io client and store it in the ref
     socketRef.current = io();
@@ -22,11 +22,11 @@ export default function Home() {
       console.log('Disconnected from the server');
     });
 
-  
+  /*
     socketRef.current.on('newPlayer', (message) => {
       alert(message);
     });
-  
+  */
 
     return () => {
       socketRef.current.disconnect();
@@ -43,11 +43,10 @@ export default function Home() {
 
   // Handle joining a room
   const handleJoinRoom = () => {
-    if (roomId) {
-      socketRef.current.emit('joinRoom', roomId);
-      console.log("Joining room: ", roomId);
+    if (roomId && nickname) {
+      socketRef.current.emit('joinRoom', { roomId: roomId, nickname: nickname});
+      console.log(`Joining room ${roomId} with nickname ${nickname}`);
       router.push(`/${roomId}`); // Redirect to the dynamic room page
-      router.push(`/${roomId}`); // Redirect to the newly created room
     }
   };
 
@@ -82,8 +81,17 @@ export default function Home() {
         )}
 
         <div className="mt-4">
+
           <input
             className="border border-gray-300 rounded px-4 py-2 text-black mb-4"
+            type="text"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            placeholder="Enter Nickname"
+          />
+
+          <input
+            className="border border-gray-300 rounded px-4 py-2 text-black mb-4 ml-1"
             type="text"
             value={roomId}
             onChange={(e) => setRoomId(e.target.value)}
