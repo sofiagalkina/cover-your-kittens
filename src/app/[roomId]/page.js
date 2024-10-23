@@ -22,6 +22,12 @@ export default function RoomPage() {
             socketRef.current.emit('joinRoom', { roomId, nickname }); 
             }
         });
+        
+        socketRef.current.on('updateUserList', (userList) => {
+            console.log('User list event received:', userList);
+            setUserList(userList);
+          });
+          
 
         socketRef.current.on('disconnect', () => {
             console.log('Disconnected from the server');
@@ -43,11 +49,12 @@ export default function RoomPage() {
             <h1>Welcome to Room <b>{roomId}</b>!</h1>
 
             <h2>Players in this room:</h2>
-            <ul>
-                {userList.map((user, index) => (
-                    <li key={index}>{user}</li>
-                ))}
-            </ul>
+        <ul>
+            {userList.map((user, index) => (
+                <li key={index}>{user}</li>
+            ))}
+        </ul>
+
         </div>
     );
 }
