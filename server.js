@@ -2,11 +2,12 @@
 const { createServer } = require('http');
 const next = require('next');
 const { Server } = require('socket.io');
-
+const PORT = process.env.PORT || 3000;
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
 const usersInRooms = {};
+
 
 app.prepare().then(() => {
   const server = createServer((req, res) => {
@@ -34,6 +35,9 @@ socket.on('joinRoom', (data) => {
     console.error('Missing roomId or nickname!');
     return;
   }
+    // Store the nickname in the socket for later use
+    socket.nickname = nickname;
+    socket.roomId = roomId;
 
   socket.join(roomId);
   console.log(`User ${nickname} joined room ${roomId}`);
@@ -55,7 +59,9 @@ socket.on('joinRoom', (data) => {
     socket.on('disconnect', () => {
         console.log('user disconnected');
 
-        for(let roomId in usersInRooms){
+        const roomId = socket.roomId;
+        const nickname = socket.nickname;
+        if(roomId && nickname){
           usersInRooms[roomId] = usersInRooms[roomId].filter(nick => nick !== nickname);
 
           // emit an updated user list:
