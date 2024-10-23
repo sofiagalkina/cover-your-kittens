@@ -1,12 +1,13 @@
 'use client';
 
 import { useParams } from 'next/navigation'; // useParams is used to extract dynamic segments from the URL
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 
 export default function RoomPage() {
     const { roomId } = useParams(); // Extract the roomId from the dynamic route
     const socketRef = useRef(null);
+    const [userList, setUserList] = useState([]); // State to store the list of players in the room
 
     useEffect(() => {
         // Initializing the socket connection
@@ -15,18 +16,20 @@ export default function RoomPage() {
         socketRef.current.on('connect', () => {
             console.log('Connected to the server');
             // Emit an event to join the room using the roomId from the URL
-            socketRef.current.emit('joinRoom', roomId);
+            const nickname = localStorage.getItem('nickname');
+            socketRef.current.emit('joinRoom', { roomId, nickname }); // Replace 'SomeName' with dynamic nickname
         });
 
         socketRef.current.on('disconnect', () => {
             console.log('Disconnected from the server');
         });
 
-        /* COMMENTING OUT THE ALERT COZ IT'S ANNOYING
-        socketRef.current.on('newPlayer', (message) => {
-            alert(message); // Alert when a new player joins
+        // Listen for the 'updateUserList' event from the server
+        socketRef.current.on('updateUserList', (userList) => {
+            console.log('Updated user list:', userList);
+            setUserList(userList); // Update the user list when received from the server
         });
-        */
+
         return () => {
             socketRef.current.disconnect();
         };
@@ -35,7 +38,13 @@ export default function RoomPage() {
     return (
         <div className="room-container">
             <h1>Welcome to Room <b>{roomId}</b>!</h1>
-            {/* You can add other game-related UI elements here */}
+
+            <h2>Players in this room:</h2>
+            <ul>
+                {userList.map((user, index) => (
+                    <li key={index}>{user}</li>
+                ))}
+            </ul>
         </div>
     );
 }

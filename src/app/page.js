@@ -43,12 +43,19 @@ export default function Home() {
 
   // Handle joining a room
   const handleJoinRoom = () => {
+    console.log("Nickname: ", nickname);
+    console.log("RoomId: ", roomId);
     if (roomId && nickname) {
-      socketRef.current.emit('joinRoom', { roomId: roomId, nickname: nickname});
+      localStorage.setItem('nickname', nickname);
+      // Emitting both roomId and nickname as an object
+      socketRef.current.emit('joinRoom', { roomId: roomId, nickname: nickname });
       console.log(`Joining room ${roomId} with nickname ${nickname}`);
-      router.push(`/${roomId}`); // Redirect to the dynamic room page
+      router.push(`/${roomId}`); // Redirect to the room page
+    } else {
+      console.log("Room ID and Nickname are required to join the room.");
     }
   };
+  
 
   return (
     <div className="relative bg-white min-h-screen flex flex-col justify-center items-center">

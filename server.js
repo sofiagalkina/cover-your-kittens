@@ -25,20 +25,31 @@ app.prepare().then(() => {
         console.log(`Room ${roomId} created!`)
     });
 
-      // Listen for a request to JOIN a room:
-      socket.on('joinRoom', ({ roomId, nickname }) =>{
-          socket.join(roomId);
-          console.log(`User ${nickname} joined room ${roomId}`)
+    // Listen for a request to JOIN a room:
+socket.on('joinRoom', (data) => {
+  console.log('joinRoom event data:', data); // Log the full data to ensure it's being received correctly
+  const { roomId, nickname } = data;
 
-          // ensuring usersInRooms is properly updated:
-          if(!usersInRooms[roomId]){
-            usersInRooms[roomId] = [];
-          }
-          usersInRooms[roomId].push(nickname);
-      // Notifying all players in the room that a new player has joined:
-        io.to(roomId).emit('newPlayer', `A new player (${nickname}) has joined room ${roomId}`); 
-        io.to(roomId).emit('updateUserList', usersInRooms[roomId]);
-      });
+  if (!roomId || !nickname) {
+    console.error('Missing roomId or nickname!');
+    return;
+  }
+
+  socket.join(roomId);
+  console.log(`User ${nickname} joined room ${roomId}`);
+
+  // Add the user's nickname to the list:
+  if (!usersInRooms[roomId]) {
+    usersInRooms[roomId] = [];
+  }
+  usersInRooms[roomId].push(nickname);
+
+  // Notify all players in the room that a new player has joined:
+  io.to(roomId).emit('newPlayer', `A new player has joined room ${roomId}`);
+  io.to(roomId).emit('updateUserList', usersInRooms[roomId]);
+});
+
+     
 
     
     socket.on('disconnect', () => {
