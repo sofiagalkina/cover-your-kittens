@@ -56,6 +56,7 @@ socket.on('joinRoom', (data) => {
   // Notify all players in the room that a new player has joined:
   io.to(roomId).emit('newPlayer', `A new player has joined room ${roomId}`);
   io.to(roomId).emit('updateUserList', usersInRooms[roomId]);
+  console.log(`User list for rooom ${roomId} after join:`, usersInRooms[roomId]);
 });
 
      

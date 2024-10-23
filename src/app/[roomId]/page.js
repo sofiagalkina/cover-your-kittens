@@ -22,7 +22,7 @@ export default function RoomPage() {
             socketRef.current.emit('joinRoom', { roomId, nickname }); 
             }
         });
-        
+
         socketRef.current.on('updateUserList', (userList) => {
             console.log('User list event received:', userList);
             setUserList(userList);
@@ -33,11 +33,11 @@ export default function RoomPage() {
             console.log('Disconnected from the server');
         });
 
-        // Listen for the 'updateUserList' event from the server
         socketRef.current.on('updateUserList', (userList) => {
-            console.log('Updated user list:', userList);
-            setUserList(userList); // Update the user list when received from the server
-        });
+            console.log('Received updated user list:', userList); // <-- Ensure this is here
+            setUserList(userList); // Update the user list state
+          });
+          
 
         return () => {
             socketRef.current.disconnect();
@@ -45,7 +45,10 @@ export default function RoomPage() {
     }, [roomId]); // Dependency on roomId so it runs when the roomId changes
 
     return (
+
         <div className="room-container">
+
+    
             <h1>Welcome to Room <b>{roomId}</b>!</h1>
 
             <h2>Players in this room:</h2>
@@ -54,7 +57,11 @@ export default function RoomPage() {
                 <li key={index}>{user}</li>
             ))}
         </ul>
-
+        <img 
+      src="/assets/Version1.png" // Ensure correct image path
+      alt="Main Menu Pusheen Image"
+      className=""
+      />
         </div>
     );
 }
