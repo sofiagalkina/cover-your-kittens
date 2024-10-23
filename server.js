@@ -65,6 +65,7 @@ socket.on('joinRoom', (data) => {
           usersInRooms[roomId] = usersInRooms[roomId].filter(nick => nick !== nickname);
 
           // emit an updated user list:
+          console.log(`User list for room ${roomId}: (this is from server.js)`)
           io.to(roomId).emit('updateUserList', usersInRooms[roomId]);
         }
 
