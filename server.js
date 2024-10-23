@@ -23,12 +23,16 @@ app.prepare().then(() => {
         console.log(`Room ${roomId} created!`)
     });
 
-    // Listen for a request to JOIN a room:
-    socket.on('joinRoom', (roomId) =>{
-        socket.join(roomId);
-        console.log(`User joined room ${roomId}`)
-    });
-        
+      // Listen for a request to JOIN a room:
+      socket.on('joinRoom', (roomId) =>{
+          socket.join(roomId);
+          console.log(`User joined room ${roomId}`)
+
+      // Notifying all players in the room that a new player has joined:
+        io.to(roomId).emit('newPlayer', `A new player has joined room ${roomId}`);  
+      });
+
+    
     socket.on('disconnect', () => {
         console.log('user disconnected');
       });
@@ -38,6 +42,6 @@ app.prepare().then(() => {
 
   const PORT = process.env.PORT || 3000;
   server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port http://localhost:${PORT}`);
   });
 });

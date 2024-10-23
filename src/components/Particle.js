@@ -24,7 +24,7 @@ const Particle = () => {
             value: 50,
           },
           size: {
-            value: 10,
+            value: 16,
           },
           move: {
             enable: true,

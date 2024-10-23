@@ -1,43 +1,54 @@
-'use client'; // This ensures the useEffect runs on the client-side
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
+'use client';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation'; // Import useRouter
 import io from 'socket.io-client';
 import Particle from "../components/Particle";
 
 export default function Home() {
-  
-  useEffect(() => {
-    const socket = io();
+  const socketRef = useRef(null);
+  const [roomId, setRoomId] = useState('');
+  const [generatedRoomId, setGeneratedRoomId] = useState('');
+  const router = useRouter(); // Initialize router here
 
-    socket.on('connect', () => {
+  useEffect(() => {
+    // Initialize socket.io client and store it in the ref
+    socketRef.current = io();
+
+    socketRef.current.on('connect', () => {
       console.log('Connected to the server');
     });
 
-    socket.on('disconnect', () => {
+    socketRef.current.on('disconnect', () => {
       console.log('Disconnected from the server');
     });
 
+  
+    socketRef.current.on('newPlayer', (message) => {
+      alert(message);
+    });
+  
+
     return () => {
-      socket.disconnect();
+      socketRef.current.disconnect();
     };
   }, []);
 
-  // placeholders for rooms stuff:
-  const [roomId, setRoomId] = useState('');
-  // handle CREATE room:
-  const handleCreateRoom = () =>{ 
-      //generating a new room id:
-      const newRoomId = Math.random().toString(36).substring(2,9);
-      socket.emit('createRoom', newRoomId);
-      console.log("New Room ID: ", newRoomId);
+  // Handle room creation
+  const handleCreateRoom = () => {
+    const newRoomId = Math.random().toString(36).substring(2, 9);
+    socketRef.current.emit('createRoom', newRoomId);
+    setGeneratedRoomId(newRoomId);
+   
   };
 
+  // Handle joining a room
   const handleJoinRoom = () => {
-      if(roomId){
-        socket.emit('joinRoom', roomId);
-        console.log("Joining room ", roomId);
-        // implement the "connect to the room" later ..... tbc
-      }
+    if (roomId) {
+      socketRef.current.emit('joinRoom', roomId);
+      console.log("Joining room: ", roomId);
+      router.push(`/${roomId}`); // Redirect to the dynamic room page
+      router.push(`/${roomId}`); // Redirect to the newly created room
+    }
   };
 
   return (
@@ -46,20 +57,30 @@ export default function Home() {
       <div className="absolute inset-0 z-0 h-screen w-full">
         <Particle />
       </div>
-    
+
       <img 
-        src="/assets/mainMenu.png" // Make sure to use the correct path
-        alt="Main Menu Pusheen Image" 
-        className="z-10" // Higher z-index for the image
+        src="/assets/mainMenu.png" // Ensure correct image path
+        alt="Main Menu Pusheen Image"
+        className="z-10 animate-pulse-scale"
       />
+
       <div className="menu text-black text-center z-10">
         <h1 className="text-4xl font-bold mb-8">Welcome to Cover Your Kittens!</h1>
+
         <button
           className="bg-[#b4e2d7] text-black py-2 px-4 rounded hover:bg-opacity-90 transition mb-4"
           onClick={handleCreateRoom}
         >
           Create New Game
         </button>
+
+        {/* Display the generated Room ID */}
+        {generatedRoomId && (
+          <div className="mt-4">
+            <p>Your Room ID is <span className="font-bold">{generatedRoomId}</span></p>
+          </div>
+        )}
+
         <div className="mt-4">
           <input
             className="border border-gray-300 rounded px-4 py-2 text-black mb-4"
@@ -78,9 +99,4 @@ export default function Home() {
       </div>
     </div>
   );
-  
-    
-  
-
-
 }
