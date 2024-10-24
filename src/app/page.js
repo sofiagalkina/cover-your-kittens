@@ -44,10 +44,10 @@ export default function Home() {
 
   // Handle joining a room
   const handleJoinRoom = () => {
-    console.log("Nickname: ", nickname);
-    console.log("RoomId: ", roomId);
+    console.log("Nickname:   (this is src/page.js)", nickname);
+    console.log("RoomId:   (this is src/page.js)", roomId);
     if (roomId && nickname) {
-      localStorage.setItem('nickname', nickname);
+      localStorage.setItem('nickname', nickname); // Store nickname here
       socketRef.current.emit('joinRoom', { roomId: roomId, nickname: nickname });
       console.log(`Joining room ${roomId} with nickname ${nickname}`);
       router.push(`/${roomId}`); // Redirect to the room page
@@ -55,6 +55,7 @@ export default function Home() {
       console.log("Room ID and Nickname are required to join the room.");
     }
   };
+  
 
   return (
     <div className="relative bg-white min-h-screen flex flex-col justify-center items-center">

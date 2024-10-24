@@ -1,5 +1,6 @@
 'use client';
 
+
 import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
@@ -13,17 +14,20 @@ export default function RoomPage() {
         socketRef.current = io();
 
         const nickname = localStorage.getItem('nickname');
-        console.log('Nickname:', nickname); // Debugging line
+        console.log('Nickname: (this is page.js from [roomId after you pulled out nickname from local storage)', nickname); // Debugging line
 
         if (nickname && roomId) {
+            console.log('Joining room with data:', { roomId, nickname }); // Log the data being sent
             socketRef.current.emit('joinRoom', { roomId, nickname }); 
-        } else {
+          } else {
             console.error('Room ID or nickname is missing!');
-        }
+          }
+
 
         socketRef.current.on('updateUserList', (userList) => {
-            console.log('User list event received:', userList);
+            console.log('User list event received: (this is [roomId]/page.js', userList);
             setUserList(userList);
+
         });
 
         socketRef.current.on('disconnect', () => {
