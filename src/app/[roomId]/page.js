@@ -14,7 +14,7 @@ export default function RoomPage() {
         socketRef.current = io();
 
         const nickname = localStorage.getItem('nickname');
-        console.log('Nickname: (this is page.js from [roomId after you pulled out nickname from local storage)', nickname); // Debugging line
+        console.log('Nickname retrieved from local storage {roomId/page.js):', nickname);
 
         if (nickname && roomId) {
             console.log('Joining room with data:', { roomId, nickname }); // Log the data being sent
