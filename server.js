@@ -19,6 +19,11 @@ app.prepare().then(() => {
         },
     });
 
+    app.use(cors({
+        origin: 'https://cover-your-kittens-8782d54c577c.herokuapp.com/', // or 'https://example.com'
+        methods: ['GET', 'POST'],
+      }));
+
     io.on('connection', (socket) => {
         console.log('a user connected');
 
