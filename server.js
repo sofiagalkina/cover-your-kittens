@@ -19,10 +19,6 @@ app.prepare().then(() => {
         },
     });
 
-    app.use(cors({
-        origin: 'https://cover-your-kittens-8782d54c577c.herokuapp.com/', // or 'https://example.com'
-        methods: ['GET', 'POST'],
-      }));
 
     io.on('connection', (socket) => {
         console.log('a user connected');
@@ -35,7 +31,7 @@ app.prepare().then(() => {
         });
 
         // Listen for a request to JOIN a room:
-        socket.on('joinRoom', (data) => {
+      /*  socket.on('joinRoom', (data) => {
             console.log('joinRoom event data:', data);
             const { roomId, nickname } = data;
 
@@ -60,6 +56,30 @@ app.prepare().then(() => {
             io.to(roomId).emit('updateUserList', usersInRooms[roomId]);
             console.log(`User list for room ${roomId} after join:`, usersInRooms[roomId]);
         });
+*/
+io.on('connection', (socket) => {
+    console.log('a user connected:', socket.id);
+
+    socket.on('joinRoom', (data) => {
+        const roomId = data.roomId;
+        const nickname = data.nickname;
+
+        // Add the user to the room
+        const room = io.sockets.adapter.rooms[roomId];
+        if (!room) {
+            io.sockets.adapter.rooms[roomId] = [];
+        }
+        io.sockets.adapter.rooms[roomId].push({ id: socket.id, nickname: nickname });
+
+        // Emit the updated user list to all clients in the room
+        const userList = io.sockets.adapter.rooms[roomId].map((user) => user.nickname);
+        io.to(roomId).emit('updateUser List', userList);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('user disconnected');
+    });
+});
 
         socket.on('disconnect', () => {
             console.log('user disconnected');

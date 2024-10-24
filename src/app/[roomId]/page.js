@@ -1,6 +1,5 @@
 'use client';
 
-
 import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
@@ -8,26 +7,30 @@ import io from 'socket.io-client';
 export default function RoomPage() {
     const { roomId } = useParams(); // Extract the roomId from the dynamic route
     const socketRef = useRef(null);
-    const [userList, setUserList] = useState([]);
+    const [userList, setUserList] = useState([]); // State for user list
+    const [nickname, setNickname] = useState(''); // State for nickname
 
     useEffect(() => {
         socketRef.current = io();
 
-        const nickname = localStorage.getItem('nickname');
-        console.log('Nickname retrieved from local storage {roomId/page.js):', nickname);
+        const storedNickname = localStorage.getItem('nickname');
+        console.log('Nickname retrieved from local storage:', storedNickname);
 
-        if (nickname && roomId) {
-            console.log('Joining room with data:', { roomId, nickname }); // Log the data being sent
-            socketRef.current.emit('joinRoom', { roomId, nickname }); 
-          } else {
+        // Set the nickname state if it exists
+        if (storedNickname) {
+            setNickname(storedNickname);
+        }
+
+        if (storedNickname && roomId) {
+            console.log('Joining room with data:', { roomId, storedNickname });
+            socketRef.current.emit('joinRoom', { roomId, nickname: storedNickname }); 
+        } else {
             console.error('Room ID or nickname is missing!');
-          }
+        }
 
-
-        socketRef.current.on('updateUserList', (userList) => {
-            console.log('User list event received: (this is [roomId]/page.js', userList);
+        socketRef.current.on('updateUser List', (userList) => {
+            console.log('User  list event received:', userList);
             setUserList(userList);
-
         });
 
         socketRef.current.on('disconnect', () => {
@@ -42,10 +45,11 @@ export default function RoomPage() {
     return (
         <div className="room-container">
             <h1>Welcome to Room <b>{roomId}</b>!</h1>
+            <h2>Your Nickname: <b>{nickname}</b></h2>
             <h2>Players in this room:</h2>
             <ul>
                 {userList.map((user, index) => (
-                    <li key={index}>{user}</li>
+                    <li key={index}>{user.nickname}</li>
                 ))}
             </ul>
             <img 
