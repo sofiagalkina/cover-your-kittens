@@ -107,14 +107,6 @@ export default function Home() {
             Join Game
           </button>
         </div>
-
-        {/* Display the list of users in the room */}
-        <h2 className="mt-4 text-lg">Users in Room:</h2>
-        <ul className="mt-2">
-          {userList.map((user, index) => (
-            <li key={index}>{user}</li>
-          ))}
-        </ul>
       </div>
     </div>
   );
