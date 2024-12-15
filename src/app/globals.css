@@ -29,3 +29,54 @@ body {
   font-family: 'Aeogo', sans-serif;
 
 }
+
+.card-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 100px; /* Increased gap between cards */
+  perspective: 1000px; /* Adds 3D perspective */
+  position: relative;
+}
+
+.card {
+  width: 170px; /* Increased size by 50px */
+  height: 250px; /* Increased height */
+  position: absolute; /* Position cards absolutely */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Shadow effect */
+  border-radius: 15px; /* Rounded corners */
+  z-index: 1; /* Ensures cards are above other content */
+}
+
+.card img {
+  width: 100%;
+  height: 100%;
+  border-radius: 15px;
+  object-fit: cover;
+}
+
+/* Apply transform for each card to create the fan effect */
+.card:nth-child(1) {
+  transform: translateX(-100px) translateY(30px) rotateY(15deg); /* Tilted left */
+}
+
+.card:nth-child(2) {
+  transform: translateX(-3px) translateY(20px) rotateY(-10deg); /* Slightly left */
+}
+
+.card:nth-child(3) {
+  transform: translateX(50px) translateY(13px) rotateY(7deg); /* Slightly right */
+}
+
+.card:nth-child(4) {
+  transform: translateX(70px) translateY(30px) rotateY(15deg); /* Tilted right */
+}
+
+/* Hover effect to lift the card */
+.card:hover {
+  transform: translateY(4px) scale(1.05); /* Lift and scale the hovered card */
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3); /* Larger shadow on hover */
+  z-index: 10; /* Bring the hovered card to the front */
+}
