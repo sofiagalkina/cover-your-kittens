@@ -37,6 +37,7 @@ body {
   gap: 100px; /* Increased gap between cards */
   perspective: 1000px; /* Adds 3D perspective */
   position: relative;
+  height: 1wh;
 }
 
 .card {
