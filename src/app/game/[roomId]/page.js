@@ -104,11 +104,12 @@ const RoomPage = () => {
 
       <div className="game-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         {/* Draw Pile */}
-        <div className="pile draw-pile" onClick={handleDrawCard}>
+        <div className="pile draw-pile w-[170px] h-[250px] rounded-[15px] ml-2 mb-10 " onClick={handleDrawCard}>
+        <p>Draw Pile: {drawPile.length} cards</p>
           <div className="pile-top">
-            <img src="/cards/back.png" alt="Draw Pile" className="pile-img" />
+            <img src="/cards/back.png" alt="Draw Pile" className="pile-img " />
           </div>
-          <p>Draw Pile: {drawPile.length} cards</p>
+         
         </div>
 
         {/* Player's Cards */}
@@ -122,12 +123,13 @@ const RoomPage = () => {
 
         {/* Discard Pile */}
         <div className="pile discard-pile">
+        <p>Top Card: {discardPile[0]}</p>
           {discardPile.length > 0 && (
-            <div className="pile-top">
+            <div className="pile-top w-[170px] h-[250px] rounded-[15px] mr-2 mb-9">
               <img src={`/cards/${discardPile[0]}`} alt="Discard Pile" className="pile-img" />
             </div>
           )}
-          <p>Top Card: {discardPile[0]}</p>
+          
         </div>
       </div>
     </div>
