@@ -10,8 +10,9 @@ const RoomPage = () => {
   const [userList, setUserList] = useState([]);
   const [socket, setSocket] = useState(null);
   const [cards, setCards] = useState([]);
-  const [drawPile, setDrawPile] = useState([]); // Cards in the draw pile
-  const [discardPile, setDiscardPile] = useState([]); // Top card of the discard pile
+  const [drawPile, setDrawPile] = useState([]);
+  const [discardPile, setDiscardPile] = useState([]);
+  const [stack, setStack] = useState([]); // Cards in the center stack
 
   const getRandomCards = (count) => {
     const randomCards = [];
@@ -23,11 +24,8 @@ const RoomPage = () => {
   };
 
   const initializeGame = () => {
-    // Initialize the draw pile with 50 random cards
     setDrawPile(getRandomCards(50));
-    // Give the user 4 random cards
     setCards(getRandomCards(4));
-    // Initialize the discard pile with one random card
     setDiscardPile([`card${Math.floor(Math.random() * 12) + 1}.png`]);
   };
 
@@ -35,23 +33,33 @@ const RoomPage = () => {
     if (drawPile.length === 0) return alert('The draw pile is empty!');
     if (cards.length >= 4) return alert('You can only have 4 cards at a time.');
 
-    // Draw a card from the draw pile
     const newCard = drawPile.pop();
-    setDrawPile([...drawPile]); // Update the draw pile
-    setCards([...cards, newCard]); // Add the new card to the user's hand
+    setDrawPile([...drawPile]);
+    setCards([...cards, newCard]);
   };
 
-  const handleDiscardCard = (index) => {
-    const discardedCard = cards[index];
-    setCards(cards.filter((_, i) => i !== index)); // Remove the discarded card from hand
-    setDiscardPile([discardedCard]); // Update the discard pile with the new top card
-
-    // Ensure user has 4 cards by drawing a new one (if possible)
-    if (drawPile.length > 0) {
-      const newCard = drawPile.pop();
-      setDrawPile([...drawPile]);
-      setCards([...cards, newCard]);
+  const handleDropOnStack = (card, index) => {
+    const newStack = [...stack, card];
+    setStack(newStack);
+    setCards(cards.filter((_, i) => i !== index));
+  
+    if (newStack.length === 2) {
+      const [firstCard, secondCard] = newStack;
+  
+      if (firstCard !== secondCard && !isWildCard(secondCard)) {
+        // If the cards do not match, return them to the player's hand
+        setCards((prevCards) => [...prevCards, ...newStack]);
+        setStack([]); // Clear the center stack
+        alert('Cards must match or the second card must be wild!');
+      }
+      // If the cards match or are wild, leave them in the stack
     }
+  };
+  
+
+  const handleDropOnDrawPile = (card, index) => {
+    setCards(cards.filter((_, i) => i !== index));
+    setDrawPile([...drawPile, card]);
   };
 
   const isWildCard = (card) => card === 'card2.png' || card === 'card5.png';
@@ -78,7 +86,7 @@ const RoomPage = () => {
     newSocket.on('error', console.error);
     setSocket(newSocket);
 
-    initializeGame(); // Initialize the game setup
+    initializeGame();
 
     return () => newSocket.disconnect();
   }, [router]);
@@ -102,34 +110,45 @@ const RoomPage = () => {
         </ul>
       </div>
 
-      <div className="game-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="game-container flex justify-between items-center">
         {/* Draw Pile */}
-        <div className="pile draw-pile w-[170px] h-[250px] rounded-[15px] ml-2 mb-10 " onClick={handleDrawCard}>
-        <p>Draw Pile: {drawPile.length} cards</p>
-          <div className="pile-top">
-            <img src="/cards/back.png" alt="Draw Pile" className="pile-img " />
-          </div>
-         
+        <div className="pile draw-pile w-[170px] h-[250px] rounded-[15px]" onClick={handleDrawCard}>
+          <p>Draw Pile: {drawPile.length} cards</p>
+          <img src="/cards/back.png" alt="Draw Pile" className="w-full h-auto rounded-[15px]" />
         </div>
 
+{/* Center Stack */}
+<div className="center-stack w-[170px] h-[250px] rounded-[15px]">
+  <h3>Center Stack</h3>
+  <div className="flex flex-wrap">
+    {stack.map((stackCard, idx) => (
+      <div key={idx} className="card w-[120px] h-[180px] rounded-[10px]">
+        <img src={`/cards/${stackCard}`} alt={`Stack Card ${idx + 1}`} className="w-full h-full" />
+      </div>
+    ))}
+  </div>
+</div>
+
         {/* Player's Cards */}
-        <div className="card-container">
+        <div className="card-container flex">
           {cards.map((card, index) => (
-            <div className="card" key={index} onClick={() => handleDiscardCard(index)}>
-              <img src={`/cards/${card}`} alt={`Card ${index + 1}`} className="card-img" />
+            <div
+              key={index}
+              className="card w-[120px] h-[180px] rounded-[10px] cursor-pointer"
+              draggable
+              onDragEnd={() => handleDropOnStack(card, index)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => handleDropOnDrawPile(card, index)}
+            >
+              <img src={`/cards/${card}`} alt={`Card ${index + 1}`} className="w-full h-full" />
             </div>
           ))}
         </div>
 
         {/* Discard Pile */}
-        <div className="pile discard-pile">
-        <p>Top Card: {discardPile[0]}</p>
-          {discardPile.length > 0 && (
-            <div className="pile-top w-[170px] h-[250px] rounded-[15px] mr-2 mb-9">
-              <img src={`/cards/${discardPile[0]}`} alt="Discard Pile" className="pile-img" />
-            </div>
-          )}
-          
+        <div className="pile discard-pile w-[170px] h-[250px] rounded-[15px]">
+          <p>Top Card: {discardPile[0]}</p>
+          <img src={`/cards/${discardPile[0]}`} alt="Discard Pile" className="w-full h-auto rounded-[15px]" />
         </div>
       </div>
     </div>
