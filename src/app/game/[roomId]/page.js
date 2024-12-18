@@ -38,30 +38,47 @@ const RoomPage = () => {
     setCards([...cards, newCard]);
   };
 
-  const handleDropOnStack = (card, index) => {
-    const newStack = [...stack, card];
-    setStack(newStack);
-    setCards(cards.filter((_, i) => i !== index));
-  
-    if (newStack.length === 2) {
-      const [firstCard, secondCard] = newStack;
-  
-      if (firstCard !== secondCard && !isWildCard(secondCard)) {
-        // If the cards do not match, return them to the player's hand
-        setCards((prevCards) => [...prevCards, ...newStack]);
-        setStack([]); // Clear the center stack
-        alert('Cards must match or the second card must be wild!');
-      }
-      // If the cards match or are wild, leave them in the stack
+const handleDropOnStack = (card, index) => {
+  if (isWildCard(card) && stack.some(isWildCard)) {
+    alert('You cannot stack two wild cards!');
+    return;
+  }
+
+  const newStack = [...stack, card];
+  setStack(newStack);
+  setCards(cards.filter((_, i) => i !== index));
+
+  if (newStack.length === 2) {
+    const [firstCard, secondCard] = newStack;
+
+    if (firstCard === secondCard || isWildCard(firstCard) || isWildCard(secondCard)) {
+      // Apply animation and merge cards
+      document.querySelector('.center-stack').classList.add('merging');
+      setTimeout(() => {
+        setStack([firstCard]); // Replace with one card
+        document.querySelector('.center-stack').classList.remove('merging');
+      }, 500); // Match the animation duration
+    } else {
+      // Return cards to the hand if they don't match
+      setCards((prevCards) => [...prevCards, ...newStack]);
+      setStack([]); // Clear the center stack
+      alert('Cards must match or at least one must be wild!');
     }
-  };
-  
+  }
+};
+
 
   const handleDropOnDrawPile = (card, index) => {
     setCards(cards.filter((_, i) => i !== index));
     setDrawPile([...drawPile, card]);
   };
 
+  // this function is made to handle discard pile drang'n'drop + ends the turn with drawing a card
+  const handleDropOnDiscardPile = (card, index) => {
+    setDiscardPile([card, ...discardPile]); // Add card to the top of the discard pile
+    setCards((prevCards) => prevCards.filter((_, i) => i !== index)); // Remove the card from the player's hand
+  };
+  
   const isWildCard = (card) => card === 'card2.png' || card === 'card5.png';
 
   useEffect(() => {
@@ -117,8 +134,17 @@ const RoomPage = () => {
           <img src="/cards/back.png" alt="Draw Pile" className="w-full h-auto rounded-[15px]" />
         </div>
 
-{/* Center Stack */}
-<div className="center-stack w-[170px] h-[250px] rounded-[15px]">
+        <div
+  className="center-stack w-[170px] h-[250px] rounded-[15px]"
+  onDragOver={(e) => e.preventDefault()}  // Allow the card to be dragged over
+  onDrop={(e) => {
+    e.preventDefault();
+    const cardIndex = parseInt(e.dataTransfer.getData('cardIndex'), 10);
+    if (!isNaN(cardIndex)) {
+      handleDropOnStack(cards[cardIndex], cardIndex);
+    }
+  }}
+>
   <h3>Center Stack</h3>
   <div className="flex flex-wrap">
     {stack.map((stackCard, idx) => (
@@ -129,6 +155,7 @@ const RoomPage = () => {
   </div>
 </div>
 
+
         {/* Player's Cards */}
         <div className="card-container flex">
           {cards.map((card, index) => (
@@ -136,7 +163,7 @@ const RoomPage = () => {
               key={index}
               className="card w-[120px] h-[180px] rounded-[10px] cursor-pointer"
               draggable
-              onDragEnd={() => handleDropOnStack(card, index)}
+              onDragStart={(e) => e.dataTransfer.setData('cardIndex', index)}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => handleDropOnDrawPile(card, index)}
             >
@@ -145,11 +172,27 @@ const RoomPage = () => {
           ))}
         </div>
 
-        {/* Discard Pile */}
-        <div className="pile discard-pile w-[170px] h-[250px] rounded-[15px]">
-          <p>Top Card: {discardPile[0]}</p>
-          <img src={`/cards/${discardPile[0]}`} alt="Discard Pile" className="w-full h-auto rounded-[15px]" />
-        </div>
+   {/* Discard Pile */}
+      <div
+        className="pile discard-pile w-[170px] h-[250px] rounded-[15px]"
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          const cardIndex = parseInt(e.dataTransfer.getData('cardIndex'), 10); // Retrieve the dragged card index
+          if (!isNaN(cardIndex)) {
+            handleDropOnDiscardPile(cards[cardIndex], cardIndex);
+          }
+        }}
+      >
+        <p>Top Card: {discardPile[0]}</p>
+        <img
+          src={`/cards/${discardPile[0]}`}
+          alt="Discard Pile"
+          className="w-full h-auto rounded-[15px]"
+        />
+      </div>
+
+        
       </div>
     </div>
   );

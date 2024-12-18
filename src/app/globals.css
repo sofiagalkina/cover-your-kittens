@@ -37,7 +37,7 @@ body {
   gap: 100px; /* Increased gap between cards */
   perspective: 1000px; /* Adds 3D perspective */
   position: relative;
-  height: 1wh;
+  height: 1vh;
 }
 
 .card {
@@ -83,4 +83,31 @@ body {
   transform: translateX(160px) translateY(30px) rotateY(-25deg); /* Tilted right */
 }
 
+
+/***********************************************
+* Animation for merging two cards if they match
+***********************************************/
+@keyframes mergeCards {
+  0% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) translateY(-10px);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.merging {
+  animation: mergeCards 0.5s forwards;
+}
+
+.card.dragging {
+  transform: none !important;
+  z-index: 20; /* Keep it on top without other styles interfering */
+}
 
