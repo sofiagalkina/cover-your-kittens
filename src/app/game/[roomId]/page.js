@@ -12,7 +12,10 @@ const RoomPage = () => {
   const [cards, setCards] = useState([]);
   const [drawPile, setDrawPile] = useState([]);
   const [discardPile, setDiscardPile] = useState([]);
-  const [stack, setStack] = useState([]); // Cards in the center stack
+  const [stack, setStack] = useState([]);
+  const [turn, setTurn] = useState('player'); // Tracks whose turn it is: 'player' or 'computer'
+  const [computerCards, setComputerCards] = useState([]);
+  const [isChallenged, setIsChallenged] = useState(false); // Track if challenge is ongoing
 
   const getRandomCards = (count) => {
     const randomCards = [];
@@ -26,6 +29,7 @@ const RoomPage = () => {
   const initializeGame = () => {
     setDrawPile(getRandomCards(50));
     setCards(getRandomCards(4));
+    setComputerCards(getRandomCards(4));
     setDiscardPile([`card${Math.floor(Math.random() * 12) + 1}.png`]);
   };
 
@@ -38,48 +42,87 @@ const RoomPage = () => {
     setCards([...cards, newCard]);
   };
 
-const handleDropOnStack = (card, index) => {
-  if (isWildCard(card) && stack.some(isWildCard)) {
-    alert('You cannot stack two wild cards!');
-    return;
-  }
-
-  const newStack = [...stack, card];
-  setStack(newStack);
-  setCards(cards.filter((_, i) => i !== index));
-
-  if (newStack.length === 2) {
-    const [firstCard, secondCard] = newStack;
-
-    if (firstCard === secondCard || isWildCard(firstCard) || isWildCard(secondCard)) {
-      // Apply animation and merge cards
-      document.querySelector('.center-stack').classList.add('merging');
-      setTimeout(() => {
-        setStack([firstCard]); // Replace with one card
-        document.querySelector('.center-stack').classList.remove('merging');
-      }, 500); // Match the animation duration
+  const handleComputerTurn = () => {
+    // Computer takes its turn
+    if (turn !== 'computer') return; // Don't allow the computer to play when it's not its turn
+  
+    if (stack.length === 1) {
+      // Computer withdraws one card if there's already one card in the stack
+      const newCard = computerCards.pop();
+      setComputerCards([...computerCards, newCard]);
+      handleDrawCard(); // Let the computer draw a card
+      setTurn('player'); // End computer's turn and pass it to the player
     } else {
-      // Return cards to the hand if they don't match
-      setCards((prevCards) => [...prevCards, ...newStack]);
-      setStack([]); // Clear the center stack
-      alert('Cards must match or at least one must be wild!');
+      // Computer creates a stack of two cards
+      const [firstCard, secondCard] = computerCards.splice(0, 2);
+      setStack([firstCard, secondCard]);
+      setComputerCards(computerCards); // Update the computer's hand after playing two cards
+      setTurn('player'); // End computer's turn and pass it to the player
     }
-  }
-};
+  };
+  
+  useEffect(() => {
+    // If it's the computer's turn, handle the computer's move
+    if (turn === 'computer') {
+      handleComputerTurn();
+    }
+  }, [turn]);
 
-
+  const handleDropOnStack = (card, index) => {
+    if (turn !== 'player') return; // Don't allow the player to play when it's not their turn
+  
+    // Check if the card is a wild card and prevent stacking two wild cards
+    if (isWildCard(card) && stack.some(isWildCard)) {
+      alert('You cannot stack two wild cards!');
+      return;
+    }
+  
+    const newStack = [...stack, card];
+    setStack(newStack);
+    setCards(cards.filter((_, i) => i !== index));
+  
+    if (newStack.length === 2) {
+      const [firstCard, secondCard] = newStack;
+  
+      if (firstCard === secondCard || isWildCard(firstCard) || isWildCard(secondCard)) {
+        // Apply animation and merge cards
+        document.querySelector('.center-stack').classList.add('merging');
+        setTimeout(() => {
+          setStack([firstCard]); // Replace with one card
+          document.querySelector('.center-stack').classList.remove('merging');
+        }, 500); // Match the animation duration
+      } else {
+        // Return cards to the hand if they don't match
+        setCards((prevCards) => [...prevCards, ...newStack]);
+        setStack([]); // Clear the center stack
+        alert('Cards must match or at least one must be wild!');
+      }
+    }
+  
+    // End the player's turn and pass it to the computer
+    setTurn('computer');
+  };
+  
   const handleDropOnDrawPile = (card, index) => {
     setCards(cards.filter((_, i) => i !== index));
     setDrawPile([...drawPile, card]);
   };
 
-  // this function is made to handle discard pile drang'n'drop + ends the turn with drawing a card
   const handleDropOnDiscardPile = (card, index) => {
     setDiscardPile([card, ...discardPile]); // Add card to the top of the discard pile
     setCards((prevCards) => prevCards.filter((_, i) => i !== index)); // Remove the card from the player's hand
   };
-  
+
   const isWildCard = (card) => card === 'card2.png' || card === 'card5.png';
+
+  // Challenge logic: If the top stack of the user is a card the computer has, it can challenge.
+  const handleChallenge = () => {
+    const userTopCard = stack[stack.length - 1];
+    const computerCard = computerCards.find((card) => card === userTopCard);
+    if (computerCard) {
+      setIsChallenged(true); // Start the challenge
+    }
+  };
 
   useEffect(() => {
     const storedRoomId = sessionStorage.getItem('roomId');
@@ -108,6 +151,13 @@ const handleDropOnStack = (card, index) => {
     return () => newSocket.disconnect();
   }, [router]);
 
+  useEffect(() => {
+    // If it's the computer's turn, handle the computer's move
+    if (turn === 'computer') {
+      handleComputerTurn();
+    }
+  }, [turn]);
+
   if (!roomId || !nickname) {
     return <p>Missing roomId or nickname!</p>;
   }
@@ -134,27 +184,27 @@ const handleDropOnStack = (card, index) => {
           <img src="/cards/back.png" alt="Draw Pile" className="w-full h-auto rounded-[15px]" />
         </div>
 
+        {/* Center Stack */}
         <div
-  className="center-stack w-[170px] h-[250px] rounded-[15px]"
-  onDragOver={(e) => e.preventDefault()}  // Allow the card to be dragged over
-  onDrop={(e) => {
-    e.preventDefault();
-    const cardIndex = parseInt(e.dataTransfer.getData('cardIndex'), 10);
-    if (!isNaN(cardIndex)) {
-      handleDropOnStack(cards[cardIndex], cardIndex);
-    }
-  }}
->
-  <h3>Center Stack</h3>
-  <div className="flex flex-wrap">
-    {stack.map((stackCard, idx) => (
-      <div key={idx} className="card w-[120px] h-[180px] rounded-[10px]">
-        <img src={`/cards/${stackCard}`} alt={`Stack Card ${idx + 1}`} className="w-full h-full" />
-      </div>
-    ))}
-  </div>
-</div>
-
+          className="center-stack w-[170px] h-[250px] rounded-[15px]"
+          onDragOver={(e) => e.preventDefault()} // Allow drag over
+          onDrop={(e) => {
+            e.preventDefault();
+            const cardIndex = parseInt(e.dataTransfer.getData('cardIndex'), 10);
+            if (!isNaN(cardIndex)) {
+              handleDropOnStack(cards[cardIndex], cardIndex);
+            }
+          }}
+        >
+          <h3>Center Stack</h3>
+          <div className="flex flex-wrap">
+            {stack.map((stackCard, idx) => (
+              <div key={idx} className="card w-[120px] h-[180px] rounded-[10px]">
+                <img src={`/cards/${stackCard}`} alt={`Stack Card ${idx + 1}`} className="w-full h-full" />
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* Player's Cards */}
         <div className="card-container flex">
@@ -172,27 +222,21 @@ const handleDropOnStack = (card, index) => {
           ))}
         </div>
 
-   {/* Discard Pile */}
-      <div
-        className="pile discard-pile w-[170px] h-[250px] rounded-[15px]"
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => {
-          e.preventDefault();
-          const cardIndex = parseInt(e.dataTransfer.getData('cardIndex'), 10); // Retrieve the dragged card index
-          if (!isNaN(cardIndex)) {
-            handleDropOnDiscardPile(cards[cardIndex], cardIndex);
-          }
-        }}
-      >
-        <p>Top Card: {discardPile[0]}</p>
-        <img
-          src={`/cards/${discardPile[0]}`}
-          alt="Discard Pile"
-          className="w-full h-auto rounded-[15px]"
-        />
-      </div>
-
-        
+        {/* Discard Pile */}
+        <div
+          className="pile discard-pile w-[170px] h-[250px] rounded-[15px]"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            const cardIndex = parseInt(e.dataTransfer.getData('cardIndex'), 10);
+            if (!isNaN(cardIndex)) {
+              handleDropOnDiscardPile(cards[cardIndex], cardIndex);
+            }
+          }}
+        >
+          <p>Top Card: {discardPile[0]}</p>
+          <img src={`/cards/${discardPile[0]}`} alt="Discard Pile" className="w-full h-auto rounded-[15px]" />
+        </div>
       </div>
     </div>
   );
