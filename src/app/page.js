@@ -79,6 +79,13 @@ export default function Home() {
           Create New Game
         </button>
 
+        <button
+          className="bg-[#b4e2d7] text-black py-2 px-4 rounded hover:bg-opacity-90 transition mb-4 ml-2"
+          onClick={handleCreateRoom}
+        >
+          Play Against Computer
+        </button>
+
         {generatedRoomId && (
           <div className="mt-4">
             <p>Your Room ID is <span className="font-bold">{generatedRoomId}</span></p>
