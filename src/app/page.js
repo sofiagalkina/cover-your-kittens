@@ -44,8 +44,8 @@ export default function Home() {
 
   // Handle joining a room
   const handleJoinRoom = () => {
-    console.log("Nickname:   (this is src/page.js)", nickname);
-    console.log("RoomId:   (this is src/page.js)", roomId);
+    console.log("Nickname:   (this is the main page  src/page.js)", nickname);
+    console.log("RoomId:   (this is the main page src/page.js)", roomId);
     if (roomId && nickname) {
       localStorage.setItem('nickname', nickname); // Store nickname here
       socketRef.current.emit('joinRoom', { roomId: roomId, nickname: nickname });
