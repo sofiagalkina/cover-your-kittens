@@ -97,7 +97,7 @@ export default function Home() {
             className="border border-gray-300 rounded px-4 py-2 text-black mb-4"
             type="text"
             value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
+            onChange={(e) => setNickname(e.target.value)} 
             placeholder="Enter Nickname"
           />
 
